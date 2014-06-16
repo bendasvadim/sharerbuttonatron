@@ -1,125 +1,111 @@
 /*
-    Sharerbuttonatron
+    Sharer
     Basic URL combinificatortron for facebook/twitter sharer
     Author: Phil Steer, Rckt
 */
-sharerbuttonatron = (function () {
-    var sharerbuttonatron = { version : "0.2" };
+sharer = (function () {
+    var sharer = { version : "0.1" };
 
-/*
-    Twitter link:
-    -------------
+    //mebbes works a bit like this
+    //$('a.twitter').on('click', function(e) { e.preventDefault(); sharer.twitter($(this), text, url, hashtags, via, related); });
+    //$('a.facebook').on('click', function(e) { e.preventDefault(); sharer.facebook($(this), name, link, picture, caption, description); });
 
-    $('a.twitter').on('click', function(e) {
-        e.preventDefault();
-        sharerbuttonatron.twitter($(this));
-    });
-
-    -- or passing to function (ie - not clicking on something)
-
-    sharerbuttonatron.twitter(false, text, url, hashtags, via, related, forceLink);
-
-    Facebook link:
-    --------------
-
-    $('a.facebook').on('click', function(e) {
-        e.preventDefault();
-        sharerbuttonatron.facebook($(this));
-    });
-
-    sharerbuttonatron.facebook(false, name, link, picture, caption, description);
-*/
-
-    function twitter( elem, text, url, hashtags, via, related, forceLink ) {
+    function twitter( elem, text, url, hashtags, via, related ) {
         /*
-            Assumes that text is desired, so will auto attempt to fill from the current page
+            Assumes that both text and url are desired, so will auto attempt to fill them from the current page
             Everything else is optional, and if elem is passed it will first try to fetch from data attributes on that element
         */
 
         //https://dev.twitter.com/docs/intents - see 'Supported Parameters' under 'Tweet or Reply to a Tweet' for more detail
-
         //start to build the sharing link
         var intentLink = 'https://twitter.com/intent/tweet?';
+        //has a tweet content string been passed to us?
+        //console.log(text, url, hashtags, via, related, elem);
 
-        //have we clicked on an element?
         if ( elem ) {
             //yes, build link from the elem
             if ( elem.attr('data-text').length > 0 ) {
+                //console.log('add text: ', elem.attr('data-text'));
                 //sure, we need to add a shed load of % symbols everywhere.
-                text = 'text=' + encodeURIComponent( elem.attr('data-text') );
+                text = 'text=' + encodeURIComponent( elem.attr('data-text').trim() );
             } else {
+                //console.log('no text, title fallback: ', $('title').text());
                 //just grab the page title so we have some text
-                text = 'text=' + encodeURIComponent( $('title').text() );
+                text = 'text=' + encodeURIComponent( $('title').text().trim() );
             }
 
-            //get the sharing URL
             if ( elem.attr('data-url') ) {
+                //console.log('add url: ', elem.attr('data-url'));
                 //yep
                 url = '&url=' + encodeURIComponent( elem.attr('data-url') );
             } else {
-                //nope, no URL
-                url = '';
+                //console.log('no url');
+                url = '&url=' + encodeURIComponent( window.location.href );
             }
 
-            //do we want to hashtag?
             if ( elem.attr('data-hashtags') ) {
+                //console.log('add hashtags: ', elem.attr('data-hashtags'));
                 hashtags = '&hashtags=' + encodeURIComponent( elem.attr('data-hashtags') );
             } else {
+                //console.log('no hashtags');
                 hashtags = '';
             }
 
-            //include via @?
             if ( elem.attr('data-via') ) {
+                //console.log('add via: ', elem.attr('data-via'));
                 via = '&via=' + elem.attr('data-via');
             } else {
+                //console.log('no via');
                 via = '';
             }
 
-            //include related twitterings?
             if ( elem.attr('data-related') ) {
+                //console.log('add related: ', elem.attr('data-related'));
                 related = '&related=' + encodeURIComponent( elem.attr('data-related') );
             } else {
+                //console.log('no related');
                 related = '';
             }
 
         } else {
-            //just use func params
-            //sharer text
+
+            //no just use params
             if ( text ) {
-                text = 'text=' + encodeURIComponent( text );
+                //console.log('include text: ', text);
+                text = 'text=' + encodeURIComponent( text.trim() );
             } else {
                 console.log('no text parameter passed - required!');
             }
 
-            //shared URL
             if ( url ) {
+                //console.log('include url: ', url);
                 url = '&url=' + encodeURIComponent( url );
             } else {
-                if ( forceLink === true ) {
-                    url = '&url=' + encodeURIComponent( window.location.href + window.location.hash );
-                } else {
-                    url ='';
-                }
+                //console.log('include url: ', url);
+                url = '&url=' + encodeURIComponent( window.location.href + window.location.hash );
             }
 
-            //hashtags
             if ( hashtags ) {
+                //console.log('include hashtags: ', hashtags);
                 hashtags = '&hashtags=' + encodeURIComponent( hashtags );
             } else {
+                //console.log('no hashtags');
                 hashtags = '';
             }
 
-            //via @
             if ( via ) {
+                //console.log('include via: ', via);
                 via = '&via=' + via;
             } else {
+                //console.log('no via');
                 via = '';
             }
 
-            //related stuff
             if ( related ) {
+                //console.log('include related: ', related);
                 related = '&related=' + related;
             } else {
+                //console.log('no related');
                 related = '';
             }
 
@@ -127,23 +113,25 @@ sharerbuttonatron = (function () {
 
         //time to ram it all together
         intentLink = intentLink + text + url + hashtags + via + related;
+        //console.log(intentLink);
 
-        //ok, we have the link so let's go there
         window.open(intentLink, 'Share', 'width=640,height=400,scrollbars=1,menubar=0,status=0,toolbar=0');
     }
 
     function facebook( elem, name, link, picture, caption, description ) {
 
-        //have we clicked an element
         if ( elem ) {
             //do we have a data attribute for the link name?
             if ( elem.attr('data-name') ) {
                 name = elem.attr('data-name');
+                //console.log('add link name: ', name);
             } else if ( $('meta[property="og:site_name"]').attr("content") ) {
                 //nope, let's try and see if the page has og meta data
                 name = $('meta[property="og:site_name"]').attr("content");
+                //console.log('add link name: ', name);
             } else {
                 //no, let's just not bother
+                //console.log('no link name');
                 name = '';
             }
 
@@ -151,40 +139,51 @@ sharerbuttonatron = (function () {
             if ( elem.attr('data-link') ) {
                 link = elem.attr('data-link');
                 link = link.replace(/\/#(.*)$/, '#$1');
+                //console.log('add link: ', link);
             } else {
                 link = ( window.location.href + window.location.hash );
+                //console.log('add link: ', link);
             }
 
             //do we have a data attribute for the link image?
             if ( elem.attr('data-picture') ) {
                 picture = elem.attr('data-picture');
+                //console.log('add picture: ', picture);
             //no we don't, can we grab it from the og meta tags?
             } else if ( $('meta[property="og:image"]').attr("content") ) {
                 picture = $('meta[property="og:image"]').attr("content");
+                //console.log('add link picture: ', picture);
             //nope. no go.
             } else {
+                //console.log('no picture');
                 picture = '';
             }
 
             //do we have a data attribute for the link caption?
             if ( elem.attr('data-caption') ) {
                 caption = elem.attr('data-caption');
+                //console.log('add link caption: ', caption);
             //no, look for og meta tag
             } else if ( $('meta[property="og:title"]').attr("content") ) {
                 caption = $('meta[property="og:title"]').attr("content");
+                //console.log('add link caption: ', caption);
             //nothing going
             } else {
+                //console.log('no caption');
                 caption = '';
             }
 
             //do we have a data attribute for the link description?
             if ( elem.attr('data-description') ) {
                 description = elem.attr('data-description');
+                //console.log('add description: ', description);
             //do we have a meta tag?
             } else if ( $('meta[property="og:description"]').attr("content") ) {
                 description = $('meta[property="og:description"]').attr("content");
+                //console.log('add link description: ', description);
             //it seems we have nothing
             } else {
+                //console.log('no description');
                 description = '';
             }
         } else {
@@ -196,18 +195,22 @@ sharerbuttonatron = (function () {
 
             if ( !link ) {
                 link = ( window.location.href + window.location.hash );
+                //console.log('include link: ', link);
             }
 
             if ( !picture ) {
                 picture = '';
+                //console.log('no picture');
             }
 
             if ( !caption ) {
                 caption = '';
+                //console.log('no caption');
             }
 
             if ( !description ) {
                 description = '';
+                //console.log('no description');
             }
         }
 
@@ -220,12 +223,12 @@ sharerbuttonatron = (function () {
             caption: caption,
             description: description
         }, function(response){});
+
+        console.log(name, link, picture, caption, description);
     }
 
-    //set up the callable stuffs
-    sharerbuttonatron.twitter = twitter;
-    sharerbuttonatron.facebook = facebook;
+    sharer.twitter = twitter;
+    sharer.facebook = facebook;
 
-    //make the magic happen
-    return sharerbuttonatron;
+    return sharer;
 })();
