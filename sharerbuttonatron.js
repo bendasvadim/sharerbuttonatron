@@ -227,8 +227,14 @@ sharer = (function () {
         console.log(name, link, picture, caption, description);
     }
 
+    function facebooksimple() {
+        var link = 'http://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent( window.location.href );
+        window.open(link, 'Share', 'width=560,height=400,scrollbars=1,menubar=0,status=0,toolbar=0');
+    }
+
     sharer.twitter = twitter;
     sharer.facebook = facebook;
+    sharer.facebooksimple = facebooksimple;
 
     return sharer;
 })();
